@@ -1,13 +1,15 @@
 package main
 
 import (
+	"bufio"    //pacote para abrir arquivos
 	"fmt"      //pacote principal da aplicação
+	"io"       //verificação de IOF
 	"net/http" //pacote de requisições web
 	"os"       //pacote do sistema operacional
+	"strings"
 )
 
 func main() {
-
 	introducao()
 
 	//um for sem parametros, não possui critério de parada
@@ -65,7 +67,7 @@ func controllerComando(escolha int) {
 func iniciarMonitoramento() {
 
 	//slices, são arrays que não precisam declaram o tamanho
-	sites := []string{"https://alura.com.br", "https://google.com.br", "https://uol.com.br"}
+	sites := sitesArquivo()
 
 	//para cada 'sites' que existe, ele coloca na variavel 'item'
 	//range retorna 'posicao, variavel'
@@ -73,8 +75,13 @@ func iniciarMonitoramento() {
 		fmt.Println("Monitorando...", item)
 
 		//http.get retorna 'resposta, log'
-		resposta, _ := http.Get(item)
+		resposta, erro := http.Get(item)
 
+		if erro != nil {
+			fmt.Println("ocorreu um erro")
+		}
+
+		//sucesso na requisição
 		if resposta.StatusCode == 200 {
 			fmt.Println("Carregado com sucesso")
 		} else {
@@ -83,4 +90,39 @@ func iniciarMonitoramento() {
 		fmt.Println("")
 	}
 	fmt.Println("")
+}
+
+func sitesArquivo() []string {
+
+	var sites []string
+
+	//Abre arquivo
+	arquivo, erro := os.Open("sites.txt")
+
+	if erro != nil {
+		fmt.Println("ocorreu um erro")
+	}
+
+	//salva no formato de possível leitura
+	leitor := bufio.NewReader(arquivo)
+
+	for {
+		// lê até fim da linha
+		linha, erro := leitor.ReadString('\n')
+		//Tira o '/n' do arquivo
+		linha = strings.TrimSpace(linha)
+
+		//adiciona site ao array
+		sites = append(sites, linha)
+
+		//ao chegar no final do arquivo, sai
+		if erro == io.EOF {
+			break
+		}
+
+	}
+
+	//Fecha arquivo
+	arquivo.Close()
+	return sites
 }
