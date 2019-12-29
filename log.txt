@@ -1,0 +1,3 @@
+29/12/2019 10:07 - https://alura.com.br -Online: true
+29/12/2019 10:07 - https://google.com.br -Online: true
+29/12/2019 10:07 - https://uol.com.br -Online: true

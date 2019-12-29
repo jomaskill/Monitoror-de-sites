@@ -1,12 +1,15 @@
 package main
 
 import (
-	"bufio"    //pacote para abrir arquivos
-	"fmt"      //pacote principal da aplicação
-	"io"       //verificação de IOF
+	"bufio" //pacote para abrir arquivos
+	"fmt"   //pacote principal da aplicação
+	"io"    //verificação de IOF
+	"io/ioutil"
 	"net/http" //pacote de requisições web
 	"os"       //pacote do sistema operacional
+	"strconv"  //Conversor p/ strings
 	"strings"
+	"time"
 )
 
 func main() {
@@ -53,7 +56,7 @@ func controllerComando(escolha int) {
 	case 1:
 		iniciarMonitoramento()
 	case 2:
-		fmt.Println("Exibindo logs...")
+		imprimeLogs()
 	case 0:
 		fmt.Println("Saindo do programa...")
 		os.Exit(0)
@@ -66,7 +69,6 @@ func controllerComando(escolha int) {
 
 func iniciarMonitoramento() {
 
-	//slices, são arrays que não precisam declaram o tamanho
 	sites := sitesArquivo()
 
 	//para cada 'sites' que existe, ele coloca na variavel 'item'
@@ -84,8 +86,11 @@ func iniciarMonitoramento() {
 		//sucesso na requisição
 		if resposta.StatusCode == 200 {
 			fmt.Println("Carregado com sucesso")
+			registraLog(item, true)
 		} else {
 			fmt.Println("Erro ", resposta.StatusCode)
+			registraLog(item, false)
+
 		}
 		fmt.Println("")
 	}
@@ -94,6 +99,7 @@ func iniciarMonitoramento() {
 
 func sitesArquivo() []string {
 
+	//slices, são arrays que não precisam declaram o tamanho
 	var sites []string
 
 	//Abre arquivo
@@ -125,4 +131,42 @@ func sitesArquivo() []string {
 	//Fecha arquivo
 	arquivo.Close()
 	return sites
+}
+
+func registraLog(site string, status bool) {
+
+	//Abre ou cria um arquivo
+	//'os.O_RDWR' Reade ou Write
+	//'O_CREATE' Criar arquivo
+	//'0666' Código de permissão de criação
+	arquivo, erro := os.OpenFile("log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+
+	if erro != nil {
+		fmt.Println("Ocorreu um erro")
+	}
+
+	//Formatação de data
+	data := time.Now().Format("02/01/2006 15:04")
+
+	//Escrever no arquivo
+	arquivo.WriteString(data + " - " + site + " -Online: " + strconv.FormatBool(status) + "\n")
+
+	//Fecha arquivo
+	arquivo.Close()
+}
+
+func imprimeLogs() {
+
+	//Abre arquivo em formato de Bytes
+	arquivo, erro := ioutil.ReadFile("log.txt")
+
+	if erro != nil {
+		fmt.Println("ocorreu um erro")
+	}
+
+	fmt.Println("Exibindo logs...")
+	fmt.Println("\n")
+	// Convertendo p/ String e imprimindo
+	fmt.Println(string(arquivo))
+
 }
